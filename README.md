@@ -1,73 +1,155 @@
-# Welcome to your Lovable project
+# Guardian-Eye
+my project is an AI-powered smart surveillance system that connects with CCTV cameras and automatically detects weapons like guns or knives in real-time. When a threat is detected, it instantly sends an emergency alert with the shop’s location and details (like number of intruders and weapons) to the nearest police or security personnel. 
 
-## Project info
+#######Folder Structure--------------------------------------
 
-**URL**: https://lovable.dev/projects/5f221f0b-1c0a-435c-a459-5a312d7f699d
+guardian-eye/
+│── detect_objects.py        # Main script for CCTV monitoring + YOLO detection
+│── email_alert.py           # Module for sending email alerts
+│── telegram_alert.py        # Module for sending Telegram alerts
+│── requirements.txt         # Python dependencies
+│── README.md                # Project documentation 
+│── yolov8s.pt               # YOLOv8 pretrained model weights (download separately)
+│
+├── suspect_pics/            # Stores cropped suspect images & full frame snapshots
+│    ├── suspect_2025-08-22_23-45-11.jpg
+│    ├── frame_2025-08-22_23-45-11.jpg
+│    └── ...
+│
+├── logs/                    # (Optional) For storing logs or backup CSV files
+│    └── detection.csv       # CSV log of all detections with timestamp & object details
+│
+└── config/                  # Configuration files (optional future use)
+     └── camera_location.json
 
-## How can I edit this code?
 
-There are several ways of editing your application.
+## 📌 Overview
 
-**Use Lovable**
+Guardian Eye is an **AI-powered smart surveillance system** that connects with CCTV cameras and automatically detects **weapons (like guns or knives) and theft-related suspicious objects** in real time.
+When a threat is detected, it:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/5f221f0b-1c0a-435c-a459-5a312d7f699d) and start prompting.
+* Draws bounding boxes on CCTV feed
+* Plays alarm + warning voice (Hindi & English)
+* Sends instant alerts with location and images via **Email & Telegram**
 
-Changes made via Lovable will be committed automatically to this repo.
+This system helps shops, malls, hospitals, and offices **prevent robbery and improve safety**.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **YOLOv8 (Ultralytics)** → Object detection
+* **OpenCV** → Video capture & frame processing
+* **Python (3.9+)** → Core programming language
+* **Pandas** → Logging detection details into CSV
+* **SMTP / Gmail API** → Email alerts
+* **Telegram Bot API** → Telegram alerts with images & location
+* **espeak & paplay** → Voice warnings + beep sound
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## ⚙️ Setup Instructions
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 1. Clone Repository
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+git clone https://github.com/your-username/guardian-eye.git
+cd guardian-eye
 ```
 
-**Edit a file directly in GitHub**
+### 2. Create Virtual Environment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+python3 -m venv venv
+source venv/bin/activate   # Linux / Mac
+venv\Scripts\activate      # Windows
+```
 
-**Use GitHub Codespaces**
+### 3. Install Dependencies
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+pip install -r requirements.txt
+```
 
-## What technologies are used for this project?
+> Example `requirements.txt`:
 
-This project is built with:
+```
+ultralytics==8.0.196
+opencv-python
+pandas
+requests
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 4. Download YOLOv8 Model Weights
 
-## How can I deploy this project?
+You need the pretrained YOLOv8 small model:
 
-Simply open [Lovable](https://lovable.dev/projects/5f221f0b-1c0a-435c-a459-5a312d7f699d) and click on Share -> Publish.
+```bash
+wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
+```
 
-## Can I connect a custom domain to my Lovable project?
+Place `yolov8s.pt` in your **project root folder** (same place as `detect_objects.py`).
 
-Yes, you can!
+### 5. Configure Alerts
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+* **Email** → Open `email_alert.py` and add your Gmail + App Password.
+* **Telegram** → Open `telegram_alert.py` and add your Bot Token + Chat ID.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### 6. Run Detection
+
+```bash
+python detect_objects.py
+```
+
+---
+
+## ✨ Features
+
+✅ Real-time CCTV feed monitoring
+✅ Detects **knife, gun, mobile phone** (can be extended)
+✅ Red bounding box + label display on live video
+✅ Plays **beep** + speaks Hindi & English warning
+✅ Sends **Email alerts** (with images + Google Maps location)
+✅ Sends **Telegram alerts** (cropped suspect image + full frame + details)
+✅ Saves cropped suspects + full frame in `suspect_pics/`
+✅ Logs all detections into `detection.csv` with timestamp & object details
+✅ **5-second cooldown** (avoids spam alerts)
+✅ **Multi-threaded alerts** (video doesn’t freeze while sending email/Telegram)
+
+---
+
+## 🔄 Technical Workflow
+
+1. **Video Feed Capture** → CCTV or webcam using OpenCV
+2. **YOLOv8 Detection** → Detects objects (knife, gun, phone, etc.) in each frame
+3. **Bounding Boxes** → Drawn on suspicious items with labels
+4. **Event Trigger** (if weapon detected):
+
+   * Play beep + voice warning
+   * Save suspect + full frame images
+   * Log details in CSV
+   * Send alerts via Email & Telegram
+5. **Alerts Include**:
+
+   * Timestamp
+   * Suspect items
+   * Images (cropped + full frame)
+   * Camera location + Google Maps link
+
+---
+
+## 🚀 Scalability & Usability
+
+* Can be deployed in **shops, schools, hospitals, banks, offices**
+* Supports multiple CCTV cameras (can be extended)
+* Future improvements:
+
+  * Cloud integration for storage & monitoring
+  * Mobile app for instant alerts
+  * More object categories (explosives, suspicious behavior, etc.)
+
+---
+
+if you here means you read all✅ 
+
+Thanks for your time...
